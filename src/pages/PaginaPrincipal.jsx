@@ -1,6 +1,6 @@
 export default function PaginaPrincipal() {
   return (
-    <div className="bg-white flex flex-col items-center justify-center gap-5">
+    <div className="bg-white flex flex-col items-center justify-center gap-5 h-full w-full">
       <h2 className="text-black text-8xl font-bold">
         <span className="text-blue-500">Elecciones</span> 2025
       </h2>
