@@ -1,0 +1,20 @@
+/* Estilo para eliminar las flechas del input de tipo number */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Estilo para la línea debajo del input al hacer clic */
+input:focus {
+    outline: none;
+}
+
+/* Estilo para el efecto hover */
+.hover:hover {
+    background-color: #D5D5D5;
+}
