@@ -4,7 +4,7 @@ import { CiEdit } from "react-icons/ci";
 const CandidatoCard = ({ nombre, partido, num_lista, imagen }) => {
   const [votos, setVotos] = useState("0");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [nuevoVoto, setNuevoVoto] = useState(""); 
+  const [nuevoVoto, setNuevoVoto] = useState("");
 
   const handleEditar = () => {
     setIsModalOpen(true);
@@ -17,7 +17,7 @@ const CandidatoCard = ({ nombre, partido, num_lista, imagen }) => {
     }
 
     setVotos(nuevoVoto);
-    setIsModalOpen(false); 
+    setIsModalOpen(false);
     alert(`Se han asignado ${nuevoVoto} votos a ${nombre}.`);
   };
 

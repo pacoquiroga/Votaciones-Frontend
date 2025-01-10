@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { FaFilter } from "react-icons/fa";
-import './RecintoSeleccionado.css';
+import { IoMdArrowRoundBack } from "react-icons/io";
+import './PresidentePage.css';
 import CandidatoCard from "../CandidatoCard";
+import { useNavigate } from "react-router-dom";
 
 const array = ["Tungurahua", "Ambato", "La matriz", "Unidad Educativa Liceo Cevallos"];
 
-//lista de juntas y candidatos
-
+// lista de juntas y candidatos
 const juntas = [{ "id": "1", "candidato": <CandidatoCard nombre="Presidente" partido="Partido 1" num_lista="1" imagen="https://danielnoboaazin.com/wp-content/uploads/2020/09/Captura-de-pantalla-2023-05-09-a-las-21.17.25.png" /> },
 { "id": "2", "candidato": <CandidatoCard nombre="Asambleísta Nacional" partido="Partido 2" num_lista="2" imagen="https://danielnoboaazin.com/wp-content/uploads/2020/09/Captura-de-pantalla-2023-05-09-a-las-21.17.25.png" /> },
 ];
@@ -14,6 +15,7 @@ const juntas = [{ "id": "1", "candidato": <CandidatoCard nombre="Presidente" par
 const RecintoSeleccionado = () => {
     const [inputValue, setInputValue] = useState("");
     const [selectedJunta, setSelectedJunta] = useState(null);
+    const navigate = useNavigate();
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -22,17 +24,28 @@ const RecintoSeleccionado = () => {
         }
     };
 
+    const handleVolverClick = () => {
+        navigate("/");
+    };
+
     const handleJuntaClick = (id) => {
         setSelectedJunta(id);
     };
 
     return (
         <div className="w-full h-full p-5 bg-white rounded-[15px] relative">
+            {/* Botón volver */}
+            <div className="text-left">
+                <button className="bg-[#4880FF] text-white font-bold text-base p-1 rounded-md" onClick={handleVolverClick}>
+                    <IoMdArrowRoundBack className="inline-block" /> Volver
+                </button>
+            </div>
             <div className="text-center">
                 <p className="text-sm font-bold text-xl text-gray-500 text-left">
                     {array[0]} {'>'} {array[1]} {'>'} {array[2]} {'>'} <span className="text-transform: uppercase" style={{ color: '#4880FF' }}>{array[3]}</span>
                 </p>
             </div>
+
             {/* Filtro de numero junta y seleccion de genero */}
             <div className="flex justify-between max-lg:flex-col items-center mt-8">
                 {/* Primer filtro */}
@@ -58,20 +71,6 @@ const RecintoSeleccionado = () => {
                         </select>
                     </div>
                 </div>
-                {/* Segundo filtro */}
-                <div className="flex items-center gap-0 border border-black rounded-md overflow-hidden">
-                    <div className="p-1 text-black items-center bg-[#4880FF] rounded-l-md flex justify-center border-r border-black">
-                        <FaFilter className="w-4 h-8" />
-                    </div>
-                    <div className="p-2 text-black rounded-r-md bg-[#4880FF]">
-                        <select className="w-full text-left bg-[#4880FF]" style={{ appearance: 'textfield', color: 'white' }}>
-                            <option value="" disabled selected hidden>Dignidad</option>
-                            <option value="1">Presidente</option>
-                            <option value="2">Asambleísta Nacional</option>
-                            <option value="3">Asambleísta Provincial</option>
-                        </select>
-                    </div>
-                </div>
             </div>
 
             <div className="text-center mt-3">
@@ -93,14 +92,14 @@ const RecintoSeleccionado = () => {
                         {juntas.map((junta) => (
                             <div
                                 key={junta.id}
-                                className={`p-3 text-black items-center justify-center border-b border-r border-black cursor-pointer hover ${selectedJunta === junta.id ? 'bg-[#4880FF]' : 'bg-white'}`}
+                                className={`p-3 text-black items-center justify-center border-b border-r border-black cursor-pointer hover:bg-sky-700 ${selectedJunta === junta.id ? 'bg-[#4880FF]' : 'bg-white'}`}
                                 onClick={() => handleJuntaClick(junta.id)}
                             >
                                 <p className="text-black text-center font-bold text-xs">{junta.id}</p>
                             </div>
                         ))}
                     </div>
-                    <div className="w-[90%] p-3">
+                    <div className="w-[90%] p-3 overflow-auto">
                         {selectedJunta && juntas.find(junta => junta.id === selectedJunta).candidato}
                     </div>
                 </div>
