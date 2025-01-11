@@ -1,9 +1,10 @@
+import React from 'react';
 import Header from "../components/shared/header";
 import Menu from "../components/shared/Menu";
 import Footer from "../components/shared/Footer";
 import { useState } from "react";
 
-export default function Layout({ Contenido }){
+const Layout = ({ children }) => {
     const [menu, setMenu] = useState(false);
 
     return(
@@ -13,10 +14,12 @@ export default function Layout({ Contenido }){
             <div className={`bg-gray-300 md:flex justify-center items-center
                 ${menu? 'hidden': 'flex'}`}>
                 <div className="h-5/6 w-5/6 md:w-11/12 rounded-xl overflow-hidden">
-                    <Contenido />
+                    {children}
                 </div>
             </div>
             <Footer />
         </div>
     );
-}
+};
+
+export default Layout;
