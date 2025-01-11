@@ -1,5 +1,6 @@
 import Header from "../components/shared/header";
 import Menu from "../components/shared/Menu";
+import Footer from "../components/shared/Footer";
 import { useState } from "react";
 
 export default function Layout({ Contenido }){
@@ -15,7 +16,7 @@ export default function Layout({ Contenido }){
                     <Contenido />
                 </div>
             </div>
-            <div className="bg-slate-600 md:col-span-2"><p>Footer</p></div>
+            <Footer />
         </div>
     );
 }
