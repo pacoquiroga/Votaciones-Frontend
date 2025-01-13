@@ -1,5 +1,6 @@
 import Select from 'react-select';
 import { useState } from 'react';
+import { useStore } from '../../store/store';
 
 const provinciasEjemplo = [
     {
@@ -83,6 +84,8 @@ export default function Menu({ menu }) {
 
             //Implementar base de datos para cargar los cantones
             setCantones(cantonesEjemplo);
+            setParroquias([]);
+            setRecintos([]);
         } else if (tipo === 'canton') {
             setCanton(valor);
             setParroquia(null);
@@ -90,6 +93,7 @@ export default function Menu({ menu }) {
 
             //Implementar base de datos para cargar las parroquias
             setParroquias(parroquiasEjemplo);
+            setRecintos([]);
         } else if (tipo === 'parroquia') {
             setParroquia(valor);
             setRecinto(null);
@@ -99,6 +103,19 @@ export default function Menu({ menu }) {
         } else if (tipo === 'recinto') {
             setRecinto(valor);
         }
+    }
+
+    const handleClick = () => {
+        console.log(provincia, canton, parroquia, recinto);
+        const recintoSeleccionado = {
+            provincia: provincia.label,
+            canton: canton.label,
+            parroquia: parroquia.label,
+            recintoId: recinto.value,
+            recintoNombre: recinto.label,
+        }
+
+        useStore.getState().setRecinto(recintoSeleccionado);
     }
 
     return (
@@ -138,6 +155,8 @@ export default function Menu({ menu }) {
                 options={recintos} />
 
                 <button
+                onClick={handleClick}
+                type='button'
                 className="text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-bold rounded-lg px-5 py-2.5 focus:outline-none w-1/2 mx-auto">
                     Buscar
                 </button>

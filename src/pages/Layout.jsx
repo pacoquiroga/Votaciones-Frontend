@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from "../components/shared/header";
+import Header from "../components/shared/Header";
 import Menu from "../components/shared/Menu";
 import Footer from "../components/shared/Footer";
 import { useState } from "react";
