@@ -1,6 +1,10 @@
 import Select from 'react-select';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../store/store';
+import { provinciasApi } from '../../api/provinciasApi';
+import { cantonesApi } from '../../api/cantonesApi';
+import { parroquiasApi } from '../../api/parroquiasApi';
+import { recintosApi } from "../../api/recintosApi";
 
 const provinciasEjemplo = [
     {
@@ -64,7 +68,7 @@ const recintosEjemplo = [
 
 export default function Menu({ menu }) {
     // Implementar base de datos para cargar las opciones
-    const [provincias, setProvincias] = useState(provinciasEjemplo);
+    const [provincias, setProvincias] = useState([]);
     const [cantones, setCantones] = useState([]);
     const [parroquias, setParroquias] = useState([]);
     const [recintos, setRecintos] = useState([]);
@@ -75,31 +79,92 @@ export default function Menu({ menu }) {
     const [parroquia, setParroquia] = useState(null);
     const [recinto, setRecinto] = useState(null);
 
+    //CARGAR DATOS BACKEND
+    //Provincias
+    const cargarProvincias = async () => {
+        try{
+            const response = await provinciasApi.get(
+                `/menu`
+            );
+            setProvincias(response.data);
+        } catch (error) {
+            console.log("Error al cargar las provincias");
+        }
+    };
+    //Cantones
+    const cargarCantones = async () => {
+        console.log(provincia);
+        try{
+            const response = await cantonesApi.get(
+                `/menu?idProvincia=${provincia.value}`
+            );
+            setCantones(response.data);
+        } catch (error){
+            console.log("Error al cargar los cantones");
+        }
+    };
+    //Parroquias
+    const cargarParroquias = async () => {
+        try{
+            const response = await parroquiasApi.get(
+                `/menu?idCanton=${canton.value}`
+            );
+            setParroquias(response.data);
+        } catch (error){
+            console.log("Error al cargar las parroquias");
+        }
+    };
+    //Recintos
+    const cargarRecintos = async () => {
+        try{
+            const response = await recintosApi.get(
+                `/menu?idParroquia=${parroquia.value}`
+            );
+            setRecintos(response.data);
+        } catch (error){
+            console.log("Error al cargar los recintos");
+        }
+    };
+    //Effect Provicias
+    useEffect(() => {
+        cargarProvincias();
+    },[]);
+    //Effect Cantones
+    useEffect(() => {
+        if(provincia){
+            cargarCantones();
+            setParroquias([]);
+            setRecintos([]);
+        }
+    },[provincia]);
+    //Effect Parroquias
+    useEffect(() => {
+        if(canton){
+            cargarParroquias();
+            setRecintos([]);
+        }
+    },[canton]);
+    //Effect Recintos
+    useEffect(() => {
+        if(parroquia){
+            cargarRecintos();
+        }
+    },[parroquia]);
+
+    //Funciones handle
     const handleChange = (tipo, valor) => {
         if (tipo === 'provincia') {
             setProvincia(valor);
             setCanton(null);
             setParroquia(null);
             setRecinto(null);
-
-            //Implementar base de datos para cargar los cantones
-            setCantones(cantonesEjemplo);
-            setParroquias([]);
-            setRecintos([]);
         } else if (tipo === 'canton') {
             setCanton(valor);
             setParroquia(null);
             setRecinto(null);
-
-            //Implementar base de datos para cargar las parroquias
-            setParroquias(parroquiasEjemplo);
-            setRecintos([]);
         } else if (tipo === 'parroquia') {
             setParroquia(valor);
             setRecinto(null);
-
-            //Implementar base de datos para cargar los recintos
-            setRecintos(recintosEjemplo);
         } else if (tipo === 'recinto') {
             setRecinto(valor);
         }
@@ -127,6 +192,7 @@ export default function Menu({ menu }) {
                 <Select
                 className='mb-6'
                 placeholder='Seleccione una provincia'
+                value={provincia}
                 onChange={(option) => handleChange('provincia', option)}
                 options={provincias} />
 
@@ -134,6 +200,7 @@ export default function Menu({ menu }) {
                 <Select
                 className='mb-6'
                 placeholder='Seleccione un cantón'
+                value={canton}
                 onChange={(option) => handleChange('canton', option)}
                 isDisabled={!provincia}
                 options={cantones} />
@@ -142,6 +209,7 @@ export default function Menu({ menu }) {
                 <Select
                 className='mb-6'
                 placeholder='Seleccione una parroquia'
+                value={parroquia}
                 onChange={(option) => handleChange('parroquia', option)}
                 isDisabled={!canton}
                 options={parroquias} />
@@ -150,14 +218,18 @@ export default function Menu({ menu }) {
                 <Select
                 className='mb-6'
                 placeholder='Seleccione un recinto'
+                value={recinto}
                 onChange={(option) => handleChange('recinto', option)}
                 isDisabled={!parroquia}
                 options={recintos} />
 
                 <button
                 onClick={handleClick}
+                isDisabled={!recinto}
                 type='button'
-                className="text-white bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-bold rounded-lg px-5 py-2.5 focus:outline-none w-1/2 mx-auto">
+                className={`text-white font-bold rounded-lg px-5 py-2.5 w-1/2 mx-auto
+                ${!recinto ? 'bg-gray-400 cursor-default'
+                : 'bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none'}`}>
                     Buscar
                 </button>
             </form>
