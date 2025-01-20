@@ -225,10 +225,10 @@ export default function Menu({ menu }) {
 
                 <button
                 onClick={handleClick}
-                isDisabled={!recinto}
+                disabled={!recinto}
                 type='button'
                 className={`text-white font-bold rounded-lg px-5 py-2.5 w-1/2 mx-auto
-                ${!recinto ? 'bg-gray-400 cursor-default'
+                ${!recinto ? 'bg-gray-400'
                 : 'bg-blue-600 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none'}`}>
                     Buscar
                 </button>
