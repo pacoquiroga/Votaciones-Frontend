@@ -1,6 +1,7 @@
 import React from 'react';
-import Header from "../components/shared/header";
+import Header from "../components/shared/Header";
 import Menu from "../components/shared/Menu";
+import Footer from "../components/shared/Footer";
 import { useState } from "react";
 
 const Layout = ({ children }) => {
@@ -16,7 +17,7 @@ const Layout = ({ children }) => {
                     {children}
                 </div>
             </div>
-            <div className="bg-slate-600 md:col-span-2"><p>Footer</p></div>
+            <Footer />
         </div>
     );
 };

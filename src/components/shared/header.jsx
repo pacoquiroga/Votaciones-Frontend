@@ -3,7 +3,6 @@ import { TiThMenu } from "react-icons/ti";
 export default function Header({ menu, setMenu }) {
     const handleClick = () => {
         setMenu(!menu);
-        console.log(menu);
     }
     return (
         <header className="bg-white flex h-full w-full md:col-span-2 items-center">
