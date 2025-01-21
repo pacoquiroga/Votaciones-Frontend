@@ -17,13 +17,13 @@ const juntas = [
 ];
 
 const candidatosJuntas = [
-    { "id": "1", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2":"ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "2", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2":"ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "3", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2":"ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "4", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2":"ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "5", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2":"ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "6", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2":"ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "7", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2":"ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
+    { "id": "1", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
+    { "id": "2", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
+    { "id": "3", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
+    { "id": "4", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
+    { "id": "5", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
+    { "id": "6", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
+    { "id": "7", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
 
 ];
 
@@ -33,7 +33,7 @@ const RecintoSeleccionado = () => {
     const [nuevoVoto, setNuevoVoto] = useState("");
     const [selectedJunta, setSelectedJunta] = useState(null);
     const navigate = useNavigate();
-    
+
 
     const handleEditar = (id) => {
         const junta = juntas.find(j => j.id === id);
@@ -81,15 +81,15 @@ const RecintoSeleccionado = () => {
             </div>
 
             {/* Filtro de numero junta y seleccion de genero */}
-            <div className="flex justify-between max-lg:flex-col items-center mt-8">
+            <div className="w-[25%] max-lg:flex-col items-center mt-8">
                 {/* Primer filtro */}
-                <div className="flex items-center gap-0 border border-black rounded-md overflow-hidden">
-                    <div className="p-2 bg-[#4880FF] border-r border-black">
+                <div className="flex items-center border border-black rounded-md overflow-hidden">
+                    <div className="p-2 bg-[#4880FF] border-r border-black flex-grow">
                         <input
                             type="text"
                             placeholder="Ingrese Partido"
-                            className="text-left bg-[#4880FF]"
-                            style={{ appearance: 'none', color: 'white', width: '100px' }}
+                            className="text-left bg-[#4880FF] w-full"
+                            style={{ appearance: 'none', color: 'white' }}
                             value={inputValue}
                             onChange={handleInputChange}
                         />
@@ -97,13 +97,13 @@ const RecintoSeleccionado = () => {
                 </div>
             </div>
 
-            <div className="border border-black rounded-md mt-3" style={{ height: '400px' }}>
+            <div className="border border-black rounded-md mt-3 overflow-hidden" style={{ height: '400px' }}>
                 <div className="flex">
                     <div className="p-3 text-black items-center bg-[#D5D5D5] justify-center border-b border-black w-full">
                         <p className="text-black text-center font-bold text-xs">Partidos Políticos</p>
                     </div>
                 </div>
-                <div className="mx-auto w-[80%] grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 p-1 mb-3 overflow-auto" style={{ maxHeight: '350px' }}>
+                <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 p-1 mb-3 overflow-y-auto" style={{ maxHeight: '350px' }}>
                     {juntas.map((j) => (
                         <div
                             key={j.id}
