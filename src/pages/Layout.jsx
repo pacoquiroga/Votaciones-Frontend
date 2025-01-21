@@ -1,24 +1,22 @@
-import React from 'react';
-import Header from "../components/shared/header";
+import Header from "../components/shared/Header";
 import Menu from "../components/shared/Menu";
+import Footer from "../components/shared/Footer";
 import { useState } from "react";
 
-const Layout = ({ children }) => {
+export default function Layout({ children: contenido }) {
     const [menu, setMenu] = useState(false);
 
     return(
-        <div className="grid md:grid-cols-layout grid-cols-1 grid-rows-layout min-h-screen">
+        <div className="grid md:grid-cols-layout grid-cols-1 grid-rows-layout h-screen">
             <Header menu={menu}  setMenu={setMenu}/>
             <Menu menu={menu}/>
             <div className={`bg-gray-300 md:flex justify-center items-center
                 ${menu? 'hidden': 'flex'}`}>
-                <div className="h-5/6 w-5/6 md:w-11/12 rounded-xl overflow-hidden">
-                    {children}
+                <div className="h-[90%] w-11/12 md:w-[95%] rounded-xl overflow-hidden">
+                    {contenido}
                 </div>
             </div>
-            <div className="bg-slate-600 md:col-span-2"><p>Footer</p></div>
+            <Footer />
         </div>
     );
 };
-
-export default Layout;

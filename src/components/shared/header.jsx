@@ -10,9 +10,7 @@ export default function Header({ menu, setMenu }) {
             onClick={handleClick}>
                 <TiThMenu className="text-black text-lg" onClick={() => setMenu(!menu)}/>
             </button>
-            <h2 className="text-black text-xl font-bold md:ml-20 mx-auto">
-                <span className="text-blue-500">ELECCIONES</span> 2025
-            </h2>
+            <img className="md:ml-20 mx-auto max-h-full md:mt-2" src="/images/logo-elecciones2025.png" alt="Logo elecciones" />
         </header>
     );
 }
