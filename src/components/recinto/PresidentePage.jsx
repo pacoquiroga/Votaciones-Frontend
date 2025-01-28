@@ -4,18 +4,28 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import './PresidentePage.css';
 import CandidatoCard from "../CandidatoCard";
 import { useNavigate } from "react-router-dom";
-
-const array = ["Tungurahua", "Ambato", "La matriz", "Unidad Educativa Liceo Cevallos"];
+import { useStore } from "../../store/store";
 
 // lista de juntas y candidatos
-const juntas = [{ "id": "1", "candidato": <CandidatoCard nombre="Presidente" partido="Partido 1" num_lista="1" imagen="https://danielnoboaazin.com/wp-content/uploads/2020/09/Captura-de-pantalla-2023-05-09-a-las-21.17.25.png" /> },
-{ "id": "2", "candidato": <CandidatoCard nombre="Asambleísta Nacional" partido="Partido 2" num_lista="2" imagen="https://danielnoboaazin.com/wp-content/uploads/2020/09/Captura-de-pantalla-2023-05-09-a-las-21.17.25.png" /> },
+const juntas = [
+    {
+        "id": "1",
+        "candidato": <CandidatoCard
+            nombre="Presidente"
+            partido="Partido 1"
+            num_lista="1"
+            imagen="https://danielnoboaazin.com/wp-content/uploads/2020/09/Captura-de-pantalla-2023-05-09-a-las-21.17.25.png"
+            className="h-[400px]" // Ajusta este valor según necesites
+        />
+    },
+    { "id": "2", "candidato": <CandidatoCard nombre="Asambleísta Nacional" partido="Partido 2" num_lista="2" imagen="https://danielnoboaazin.com/wp-content/uploads/2020/09/Captura-de-pantalla-2023-05-09-a-las-21.17.25.png" /> },
 ];
 
 const RecintoSeleccionado = () => {
     const [inputValue, setInputValue] = useState("");
     const [selectedJunta, setSelectedJunta] = useState(null);
     const navigate = useNavigate();
+    const recinto = useStore((state) => state.recinto);  // Agregar esta línea
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -42,7 +52,10 @@ const RecintoSeleccionado = () => {
             </div>
             <div className="text-center">
                 <p className="text-sm font-bold text-xl text-gray-500 text-left">
-                    {array[0]} {'>'} {array[1]} {'>'} {array[2]} {'>'} <span className="text-transform: uppercase" style={{ color: '#4880FF' }}>{array[3]}</span>
+                    {recinto.provincia} {'>'} {recinto.canton} {'>'} {recinto.parroquia} {'>'}
+                    <span className="text-transform: uppercase" style={{ color: '#4880FF' }}>
+                        {recinto.recintoNombre}
+                    </span>
                 </p>
             </div>
 
