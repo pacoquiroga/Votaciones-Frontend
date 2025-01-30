@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { dignidadesApi } from '../../api/dignidadesApi';
 import { useStore } from "../../store/store"; // Importa el estado global
 
-const DignidadCard = () => {
+const DignidadPage = () => {
     const navigate = useNavigate();
     const [dignidad, setDignidad] = useState([]);
     const recinto = useStore((state) => state.recinto); 
@@ -41,7 +41,7 @@ const DignidadCard = () => {
                 navigate("/recinto-seleccionado", { state: { candidatoId } });
                 break;
             case 2: 
-                navigate("/asambleista-nacional");
+                navigate("/asambleista-nacional",  { state: { candidatoId } });
                 break;
             case 3:
                 navigate("/asambleista-provincial");
@@ -80,4 +80,4 @@ const DignidadCard = () => {
     );
 }
 
-export default DignidadCard;
+export default DignidadPage;

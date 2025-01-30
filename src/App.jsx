@@ -4,7 +4,7 @@ import PaginaPrincipal from "./pages/PaginaPrincipal";
 import PresidentePage from "./components/recinto/PresidentePage";
 import AsambleistaNaPage from "./components/recinto/AsambleistaNaPage";
 import AsambleistaProvPage from "./components/recinto/AsambleistaProvPage";
-import DignidadCard from "./components/recinto/DignidadCard";
+import DignidadPage from "./components/recinto/DignidadPage";
 import { useStore } from "./store/store";
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
               <Route path="/recinto-seleccionado" element={<PresidentePage />} />
               <Route path="/asambleista-nacional" element={<AsambleistaNaPage />} />
               <Route path="/asambleista-provincial" element={<AsambleistaProvPage />} />
-              <Route path="/" element={<DignidadCard />} />
+              <Route path="/" element={<DignidadPage />} />
             </Routes>
           </Router>
       }
