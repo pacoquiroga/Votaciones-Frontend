@@ -3,6 +3,7 @@ import Menu from "../shared/Menu";
 import Footer from "../shared/Footer";
 import { simulacionStore } from "../../store/simulacionStore";
 import { useState } from "react";
+import { BrowserRouter as Router } from "react-router-dom";
 
 export default function Layout({ children: contenido }) {
     const [menu, setMenu] = useState(false);
@@ -12,6 +13,8 @@ export default function Layout({ children: contenido }) {
         <div className="grid md:grid-cols-layout grid-cols-1 grid-rows-layout h-screen">
             <Header menu={menu}  setMenu={setMenu}/>
             
+            <Router>
+
             {/* Mostrar el Menu solo si ya existe una simulacion */}
             {simulacion.idSimulacion !== 0 &&
             <Menu menu={menu}/>
@@ -24,6 +27,8 @@ export default function Layout({ children: contenido }) {
                     {contenido}
                 </div>
             </div>
+
+            </Router>
             <Footer />
         </div>
     );

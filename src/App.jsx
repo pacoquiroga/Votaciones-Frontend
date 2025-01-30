@@ -38,14 +38,13 @@ function App() {
       {
         simulacion.idSimulacion === 0 ? <Simulacion/> :
         recinto.recintoId === 0 ? <PaginaPrincipal/>
-        : <Router>
+        : 
             <Routes>
               <Route path="/recinto-seleccionado" element={<PresidentePage />} />
               <Route path="/asambleista-nacional" element={<AsambleistaNaPage />} />
               <Route path="/asambleista-provincial" element={<AsambleistaProvPage />} />
               <Route path="/" element={<DignidadCard />} />
             </Routes>
-          </Router>
       }
     </Layout>
   );

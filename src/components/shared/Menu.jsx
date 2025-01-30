@@ -3,6 +3,7 @@ import ModalSimulacion from '../simulacion/ModalSimulacion';
 import { FaCircleInfo } from "react-icons/fa6";
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/store';
+import { useNavigate } from 'react-router-dom';
 
 import { provinciasApi } from '../../api/provinciasApi';
 import { cantonesApi } from '../../api/cantonesApi';
@@ -10,6 +11,7 @@ import { parroquiasApi } from '../../api/parroquiasApi';
 import { recintosApi } from "../../api/recintosApi";
 
 export default function Menu({ menu }) {
+    const navigate = useNavigate();
     // Abrir modal
     const [openModalSimulacion, setOpenModalSimulacion] = useState(false);
 
@@ -127,7 +129,7 @@ export default function Menu({ menu }) {
         }
 
         useStore.getState().setRecinto(recintoSeleccionado);
-        
+        navigate("/")
     }
 
     const handleClickInfoSimulacion = () => {
