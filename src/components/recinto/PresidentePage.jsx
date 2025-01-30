@@ -10,7 +10,7 @@ import { useStore } from "../../store/store";
 import { candidatoApi } from "../../api/candidatoApi";
 import { juntaApi } from "../../api/juntaApi";
 
-const RecintoSeleccionado = () => {
+const PresidentePage = () => {
     const location = useLocation();
     const candidatoId = location.state?.candidatoId;
     const [inputValue, setInputValue] = useState("");
@@ -26,6 +26,25 @@ const RecintoSeleccionado = () => {
     const [showCards, setShowCards] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedJuntaId, setSelectedJuntaId] = useState(null);
+
+    // Cargar candidatos al inicio
+    useEffect(() => {
+        const fetchCandidatos = async () => {
+            try {
+                const response = await candidatoApi.get(`/menu?idDignidad=${candidatoId}`);
+                if (response.data) {
+                    setCandidatos(response.data);
+                }
+            } catch (error) {
+                console.error('Error cargando candidatos:', error);
+                setCandidatos({ candidatos: [], numPartido: "" });
+            }
+        };
+
+        if (candidatoId) {
+            fetchCandidatos();
+        }
+    }, [candidatoId]);
 
     const cargarJuntas = async (gender) => {
         try {
@@ -60,26 +79,9 @@ const RecintoSeleccionado = () => {
         );
     };
 
-    const handleJuntaClick = async (juntaId) => {
-        try {
-            setIsLoading(true);
-            setSelectedJuntaId(juntaId);
-
-            const response = await candidatoApi.get(`/menu?idDignidad=${candidatoId}`);
-            console.log('Datos de candidatos recibidos:', response.data);
-            console.log('Datos de candidatos recibidos:', response.data.candidatos);
-
-            if (response.data) {
-                setCandidatos(response.data);
-                setShowCards(true);
-            }
-        } catch (error) {
-            console.error('Error cargando candidatos:', error);
-            setCandidatos({ candidatos: [], numPartido: "" });
-            setShowCards(false);
-        } finally {
-            setIsLoading(false);
-        }
+    const handleJuntaClick = (juntaId) => {
+        setSelectedJuntaId(juntaId);
+        setShowCards(true);
     };
 
     const handleVolverClick = () => {
@@ -91,7 +93,7 @@ const RecintoSeleccionado = () => {
     };
 
     return (
-        <div className="w-full h-full p-5 bg-white rounded-[15px] relative">
+        <div className="w-full h-full p-5 bg-white relative overflow-auto">
             {/* Header section remains the same */}
             <div className="text-left">
                 <button className="bg-[#4880FF] text-white font-bold text-base p-1 rounded-md" onClick={handleVolverClick}>
@@ -145,7 +147,8 @@ const RecintoSeleccionado = () => {
                 </p>
             </div>
 
-            <div className="border border-black rounded-md overflow-hidden mt-3">
+            <div className={`border border-black rounded-md overflow-hidden mt-3 
+                ${showCards ? 'h-full' : ''}`}>
                 <div className="flex">
                     <div className="p-3 text-black items-center bg-[#D5D5D5] justify-center border-b border-r border-black w-[10%]">
                         <p className="text-black text-center font-bold text-xs"># Junta</p>
@@ -155,7 +158,7 @@ const RecintoSeleccionado = () => {
                     </div>
                 </div>
 
-                <div className="flex">
+                <div className={`flex flex-1 ${showCards ? 'h-full' : ''}`}>
                     <div className="w-[10%]">
                         {filtrarJuntas().map((junta) => (
                             <div
@@ -169,35 +172,39 @@ const RecintoSeleccionado = () => {
                         ))}
                     </div>
 
-                    <div className="w-[90%] p-3">
+                    <div className="w-[90%] p-3 overflow-auto">
                         {isLoading && (
                             <p className="text-center">Cargando candidatos...</p>
                         )}
 
                         {!isLoading && !showCards && (
-                            <p className="text-center text-lg text-red-500">
+                            <p className="text-center text-lg text-red-500 mt-10">
                                 Por favor seleccione una junta para ver los candidatos
                             </p>
                         )}
 
                         {!isLoading && showCards && candidatosData && candidatosData.length > 0 ? (
-                            <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 p-1 mb-3 overflow-y-auto"
+                            <div className="mx-auto w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 p-1 mb-3"
                                 style={{ maxHeight: '350px' }}>
                                 {candidatosData.map(partido => (
                                     <div key={partido.idCandidato}
-                                        className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer transform transition-transform duration-300 hover:scale-105">
+                                        className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top">
                                         {partido.candidatos.map(candidato => (
                                             <div key={candidato.idCandidato}>
-                                                <img
-                                                    src={candidato.fotoCandidato ? null : <FaUserTie />}
-                                                    alt={candidato.nombreCandidato}
-                                                    className="w-25 h-40 object-cover mx-auto"
-                                                />
+                                                {candidato.fotoCandidato ? (
+                                                    <img
+                                                        src={candidato.fotoCandidato}
+                                                        alt={candidato.nombreCandidato}
+                                                        className="w-25 h-40 object-cover mx-auto"
+                                                    />
+                                                ) : (
+                                                    <FaUserTie className="w-[50%] h-[20%] mx-auto" />
+                                                )}
                                                 <p className="text-center text-lg font-bold mt-2">{candidato.nombreCandidato}</p>
                                                 <p className="text-center text-lg font-bold">{candidato.posicion}</p>
                                             </div>
                                         ))}
-                                        <p className="text-center text-lg font-bold">LISTA: {candidatosData.numPartido}</p>
+                                        <p className="text-center text-lg font-bold">LISTA: {partido.numPartido}</p>
                                     </div>
                                 ))}
                             </div>
@@ -215,4 +222,4 @@ const RecintoSeleccionado = () => {
     );
 };
 
-export default RecintoSeleccionado;
+export default PresidentePage;
