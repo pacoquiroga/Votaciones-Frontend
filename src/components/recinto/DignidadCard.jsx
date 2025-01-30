@@ -1,22 +1,53 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { dignidadesApi } from '../../api/dignidadesApi';
+import { useStore } from "../../store/store"; // Importa el estado global
 
 const DignidadCard = () => {
     const navigate = useNavigate();
+    const [dignidad, setDignidad] = useState([]);
+    const recinto = useStore((state) => state.recinto); 
 
-    const dignidad = [
-        { "id": "1", "nombre": "Presidente y Vicepresidente", "imagen": "https://votoinformado.cne.gob.ec/assets/dignidades/binomio.png" },
-        { "id": "2", "nombre": "Asambleísta Nacionales", "imagen": "https://votoinformado.cne.gob.ec/assets/dignidades/nacionales.png" },
-        { "id": "3", "nombre": "Asambleísta Provinciales",  "imagen": "https://votoinformado.cne.gob.ec/assets/dignidades/provinciales.png" },
-    ];
+    const provinciasExcluidas = ['PICHINCHA', 'GUAYAS', 'MANABI'];
 
-    const handleDignidadClick = (id) => {
-        if (id === "1") {
-            navigate("/recinto-seleccionado");
-        } else if (id === "2") {
-            navigate("/asambleista-nacional");
-        } else if (id === "3") {
-            navigate("/asambleista-provincial");
+    const cargarDignidad = async () => {
+        try {
+            const response = await dignidadesApi.get("/");
+
+            const filteredDignidades = response.data.filter(d => {
+                if (d.nombreDignidad.toLowerCase().includes('asambleistas provinciales por circunscripcion')) {
+                    return provinciasExcluidas.includes(recinto.provincia?.toUpperCase());
+                }
+                return true;
+            });
+            console.log(response.data);
+            setDignidad(filteredDignidades);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        cargarDignidad();
+    }, [recinto.provincia]);
+
+
+    // Función para redireccionar a la página de la dignidad seleccionada y 
+
+    const handleDignidadClick = (id, candidatoId) => {
+        switch(id) {
+            case 1:
+                navigate("/recinto-seleccionado", { state: { candidatoId } });
+                break;
+            case 2: 
+                navigate("/asambleista-nacional");
+                break;
+            case 3:
+                navigate("/asambleista-provincial");
+                break;
+            default:
+                console.log("Dignidad no encontrada");
         }
     };
 
@@ -27,15 +58,21 @@ const DignidadCard = () => {
                     Dignidades
                 </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                {dignidad.map((d) => (
-                    <div 
-                        key={d.id} 
-                        className="bg-[#4880FF] rounded-[15px] p-5 text-white hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer transform transition-transform duration-300 hover:scale-105"
-                        onClick={() => handleDignidadClick(d.id)}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-20">
+                {dignidad.map((dignidad) => (
+                    <div
+                        key={dignidad.codigoDignidad}
+                        className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer w-full flex flex-col items-center justify-between"
+                        onClick={() => handleDignidadClick(dignidad.codigoDignidad, dignidad.idDignidad)}
                     >
-                        <img src={d.imagen} alt="imagen" className="w-30 h-40 object-cover mx-auto rounded-full" />
-                        <p className="text-center text-lg font-bold ">{d.nombre}</p>
+                        <div className="flex flex-col items-center w-full h-full">
+                            <img
+                                src={dignidad.fotoDignidad}
+                                alt={dignidad.nombreDignidad}
+                                className="object-cover mb-4"
+                            />
+                            <p className="text-center text-lg font-bold">{dignidad.nombreDignidad}</p>
+                        </div>
                     </div>
                 ))}
             </div>

@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import './PresidentePage.css';
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../../store/store";
+import { partidosApi } from "../../api/partidosApi";
 
-const array = ["Tungurahua", "Ambato", "La matriz", "Unidad Educativa Liceo Cevallos"];
+// lista de juntas y candidatos
 
 // lista de juntas y candidatos
 const juntas = [
@@ -17,27 +18,32 @@ const juntas = [
 
 ];
 
-const candidatosJuntas = [
-    { "id": "1", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "2", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "3", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "4", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "5", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "6", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-    { "id": "7", "nombre": "RICARDO VANEGAS", "cargo": "PRINCIPAL", "nombre2": "ALEXANDRA OVIEDO SALAZAR", "cargo2": "SUPLENTE", "orden": 1, "imagen": "https://backend-apps.cne.gob.ec/repository/api/File/Get?file=votoinformado/candidatos/132/9/0909443111.jpg" },
-
-];
-
 const RecintoSeleccionado = () => {
     const [inputValue, setInputValue] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [nuevoVoto, setNuevoVoto] = useState("");
     const [selectedJunta, setSelectedJunta] = useState(null);
-    const [showVoteInput, setShowVoteInput] = useState(false);
-    const [votoInput, setVotoInput] = useState("");
     const [candidatoVotos, setCandidatoVotos] = useState({});
     const navigate = useNavigate();
     const recinto = useStore((state) => state.recinto);
+
+    ///Logica para implementar base de datos y cargar los partidos
+    const [partido, setPartido] = useState([]);
+
+    //cargar datos backend
+    const cargarPartidos = async () => {
+        try {
+            const response = await partidosApi.get("/");
+            setPartido(response.data);
+            console.log()
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        cargarPartidos();
+    }, []);
 
 
     const handleEditar = (id) => {
@@ -85,7 +91,7 @@ const RecintoSeleccionado = () => {
             </div>
             <div className="text-center">
                 <p className="text-sm font-bold text-xl text-gray-500 text-left">
-                    {recinto.provincia} {'>'} {recinto.canton} {'>'} {recinto.parroquia} {'>'} 
+                    {recinto.provincia} {'>'} {recinto.canton} {'>'} {recinto.parroquia} {'>'}
                     <span className="text-transform: uppercase" style={{ color: '#4880FF' }}>
                         {recinto.recintoNombre}
                     </span>
@@ -116,26 +122,26 @@ const RecintoSeleccionado = () => {
                     </div>
                 </div>
                 <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 p-1 mb-3 overflow-y-auto" style={{ maxHeight: '350px' }}>
-                    {juntas
-                        .filter(j => j.nombre.toLowerCase().includes(inputValue.toLowerCase()))
+                    {partido
+                        .filter(j => j.nombrePartido.toLowerCase().includes(inputValue.toLowerCase()))
                         .map((j) => (
-                        <div
-                            key={j.id}
-                            className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer transform transition-transform duration-300 hover:scale-105"
-                            onClick={() => handleEditar(j.id)}
-                        >
-                            <img src={j.imagen} alt="imagen" className="w-25 h-40 object-cover mx-auto" />
-                            <p className="text-center text-lg font-bold ">{j.nombre}</p>
-                            <p className="text-center text-lg font-bold ">{j.votos} votos</p>
-                        </div>
-                    ))}
+                            <div
+                                key={j.id}
+                                className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer transform transition-transform duration-300 hover:scale-105"
+                                onClick={() => handleEditar(j.numPartido)}
+                            >
+                                <img src={j.fotoPartido} alt="imagen" className="w-25 h-40 object-cover mx-auto" />
+                                <p className="text-center text-lg font-bold ">{j.nombrePartido}</p>
+                                <p className="text-center text-lg font-bold ">LISTA: {j.numPartido}</p>
+                            </div>
+                        ))}
                 </div>
             </div>
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                     <div className="bg-white w-[70%] p-5 rounded-md shadow-lg overflow-auto" style={{ maxHeight: '80vh' }}>
                         <h2 className="text-xl font-bold mb-3">Editar Votos de {selectedJunta?.nombre}</h2>
-                        
+
                         {/* Campo principal de votos del partido */}
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
