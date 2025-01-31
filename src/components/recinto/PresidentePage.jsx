@@ -4,7 +4,6 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { useLocation } from "react-router-dom";
 import './PresidentePage.css';
 import { FaUserTie } from "react-icons/fa";
-import CandidatoCard from "../CandidatoCard";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../../store/store";
 import { candidatoApi } from "../../api/candidatoApi";
@@ -26,43 +25,78 @@ const PresidentePage = () => {
     const [showCards, setShowCards] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedJuntaId, setSelectedJuntaId] = useState(null);
+    const [votos, setVotos] = useState([]);  // Definir el estado de votos
 
-    // Cargar candidatos al inicio
     useEffect(() => {
-        const fetchCandidatos = async () => {
+        const fetchData = async () => {
             try {
-                const response = await candidatoApi.get(`/menu?idDignidad=${candidatoId}`);
-                if (response.data) {
-                    setCandidatos(response.data);
-                }
+                setIsLoading(true);
+                // Realizar ambas solicitudes al mismo tiempo
+                const [candidatosResponse, juntasResponse] = await Promise.all([
+                    candidatoApi.get(`/menu?idDignidad=${candidatoId}`),
+                    juntaApi.get(`/menu?idRecinto=${recinto.recintoId}`)
+                ]);
+    
+                // Accedemos a la estructura que contiene los candidatos
+                setCandidatos(candidatosResponse.data || { candidatos: [], numPartido: "" });
+                console.log('Candidatos:', candidatosResponse.data);
+    
+                // Filtrar las juntas
+                const juntasFiltradas = juntasResponse.data.filter(junta => junta.genero === selectedGender);
+                setJunta(juntasResponse.data);
+                setFilteredJuntas(juntasFiltradas);
+    
+                // Ahora que los datos están listos, cargamos los votos
+                fetchVotos(candidatosResponse.data, juntasFiltradas);  // Pasamos los datos correctamente
             } catch (error) {
-                console.error('Error cargando candidatos:', error);
-                setCandidatos({ candidatos: [], numPartido: "" });
+                console.error("Error cargando datos:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
-
-        if (candidatoId) {
-            fetchCandidatos();
+    
+        if (candidatoId && recinto.recintoId) {
+            fetchData();
         }
-    }, [candidatoId]);
-
-    const cargarJuntas = async (gender) => {
+    }, [candidatoId, recinto.recintoId, selectedGender]);
+    
+    const fetchVotos = async (candidatosData, juntasFiltradas) => {
+        if (!candidatosData || candidatosData.length === 0) return;
+    
+        const candidatosIds = candidatosData
+            .flatMap(partido => partido.candidatos)
+            .map(c => c.idCandidato) 
+            .filter(id => id) 
+            .join("&candidatos=");
+    
+        if (!candidatosIds) {
+            console.error("No hay candidatos válidos");
+            return;
+        }
+    
+        const juntasIds = juntasFiltradas
+            .map(j => j.idJunta)
+            .filter(id => id) 
+            .join("&juntas=");
+    
+    
+        if (!juntasIds) {
+            console.error("No hay juntas válidas");
+            return;
+        }
+    
+        const url = `/votosCandidatoJunta?candidatos=${candidatosIds}&juntas=${juntasIds}&idSimulacion=a6db8cc2-d8d7-4582-91f6-005e4d9d0b3d`;
+    
         try {
-            const response = await juntaApi.get(`/menu?idRecinto=${recinto.recintoId}`);
-            const juntasFiltradas = response.data.filter(junta => junta.genero === gender);
-            setJunta(response.data);
-            setFilteredJuntas(juntasFiltradas);
+            const response = await candidatoApi.get(url);
+            setVotos(response.data);
+            console.log('Votos de los candidatos:', response.data);
         } catch (error) {
-            console.error("Error cargando juntas:", error);
+            console.error('Error obteniendo votos:', error);
+            setVotos([]);
         }
     };
-
-    useEffect(() => {
-        if (recinto.recintoId) {
-            cargarJuntas(selectedGender);
-        }
-    }, [recinto.recintoId, selectedGender]);
-
+    
     const handleInputChange = (e) => {
         const value = e.target.value;
         if (/^\d*$/.test(value)) {
@@ -90,6 +124,16 @@ const PresidentePage = () => {
 
     const handleGenderChange = (e) => {
         setSelectedGender(e.target.value);
+        setSelectedJuntaId(null);
+        setShowCards(false);
+    };
+
+    const obtenerVotosCandidato = (juntaId, candidatoId) => {
+        const junta = votos.find(j => j.idJunta === juntaId);
+        if (!junta) return 0;
+        
+        const candidato = junta.candidatos.find(c => c.idCandidato === candidatoId);
+        return candidato ? candidato.numVotos : 0;
     };
 
     return (
@@ -174,36 +218,46 @@ const PresidentePage = () => {
 
                     <div className="w-[90%] p-3 overflow-auto">
                         {isLoading && (
-                            <p className="text-center">Cargando candidatos...</p>
+                            <div className="h-full flex items-center justify-center">
+                                <p className="text-center">Cargando candidatos...</p>
+                            </div>
                         )}
 
                         {!isLoading && !showCards && (
-                            <p className="text-center text-lg text-red-500 mt-10">
-                                Por favor seleccione una junta para ver los candidatos
-                            </p>
+                            <div className="h-full flex items-center justify-center">
+                                <p className="text-center text-lg text-red-500">
+                                    Por favor, seleccione una junta para ver los candidatos
+                                </p>
+                            </div>
                         )}
 
                         {!isLoading && showCards && candidatosData && candidatosData.length > 0 ? (
                             <div className="mx-auto w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 p-1 mb-3"
                                 style={{ maxHeight: '350px' }}>
                                 {candidatosData.map(partido => (
-                                    <div key={partido.idCandidato}
-                                        className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top">
+                                    <div key={partido.idPartido} className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top">
                                         {partido.candidatos.map(candidato => (
                                             <div key={candidato.idCandidato}>
-                                                {candidato.fotoCandidato ? (
+                                                {!candidato.fotoCandidato || candidato.fotoCandidato === "" ? (
+                                                    <FaUserTie className="w-[50%] h-[20%] mx-auto" />
+                                                ) : (
                                                     <img
                                                         src={candidato.fotoCandidato}
                                                         alt={candidato.nombreCandidato}
-                                                        className="w-25 h-40 object-cover mx-auto"
+                                                        className="w-[50%] object-cover mx-auto"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.style.display = 'none';
+                                                            e.target.parentElement.innerHTML = '<div class="w-[50%] h-[20%] mx-auto"><FaUserTie /></div>';
+                                                        }}
                                                     />
-                                                ) : (
-                                                    <FaUserTie className="w-[50%] h-[20%] mx-auto" />
                                                 )}
-                                                <p className="text-center text-lg font-bold mt-2">{candidato.nombreCandidato}</p>
-                                                <p className="text-center text-lg font-bold">{candidato.posicion}</p>
+                                                <p className="text-center text-sm font-bold mt-2">{candidato.nombreCandidato}</p>
+                                                <p className="text-center text-xs">{candidato.posicion}</p>
+
                                             </div>
                                         ))}
+                                        <p className="text-center text-lg font-bold">Votos: {obtenerVotosCandidato(selectedJuntaId,partido.candidatos[0].idCandidato)}</p>
                                         <p className="text-center text-lg font-bold">LISTA: {partido.numPartido}</p>
                                     </div>
                                 ))}
