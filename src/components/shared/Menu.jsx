@@ -122,6 +122,7 @@ export default function Menu({ menu }) {
         console.log(provincia, canton, parroquia, recinto);
         const recintoSeleccionado = {
             provincia: provincia.label,
+            idProvincia: provincia.value,
             canton: canton.label,
             parroquia: parroquia.label,
             recintoId: recinto.value,

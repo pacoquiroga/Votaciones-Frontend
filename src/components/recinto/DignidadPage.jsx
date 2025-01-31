@@ -33,8 +33,6 @@ const DignidadPage = () => {
     }, [recinto.provincia]);
 
 
-    // Función para redireccionar a la página de la dignidad seleccionada y 
-
     const handleDignidadClick = (id, dignidadId) => {
         switch(id) {
             case 1:
@@ -45,6 +43,15 @@ const DignidadPage = () => {
                 break;
             case 3:
                 navigate("/asambleista-provincial",  { state: { dignidadId } });
+                break;
+            case 4:
+                navigate("/parlamento-andino",  { state: { dignidadId } });
+                break;
+            case 5:
+                navigate("/asambleista-exterior",  { state: { dignidadId } });
+                break;
+            case 6:
+                navigate("/asambleista-circunscripcion",  { state: { dignidadId } });
                 break;
             default:
                 console.log("Dignidad no encontrada");
@@ -58,7 +65,7 @@ const DignidadPage = () => {
                     Dignidades
                 </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                 {dignidad.map((dignidad) => (
                     <div
                         key={dignidad.codigoDignidad}

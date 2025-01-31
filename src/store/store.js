@@ -4,6 +4,7 @@ export const useStore = create((set) => ({
     recinto:
     {
         provincia: '',
+        idProvincia: 0,
         canton: '',
         parroquia: '',
         recintoId: 0,
@@ -13,6 +14,6 @@ export const useStore = create((set) => ({
         set((state) => ({recinto: recintoSeleccionado}))
     },
     resetRecinto: () => {
-        set((state) => ({recinto: {provincia: '', canton: '', parroquia: '', recintoId: 0, recintoNombre: ''}}))
+        set((state) => ({recinto: {provincia: '', idProvincia: 0, canton: '', parroquia: '', recintoId: 0, recintoNombre: ''}}))
     }
 }))

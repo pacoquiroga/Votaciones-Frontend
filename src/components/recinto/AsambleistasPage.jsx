@@ -9,10 +9,10 @@ import { partidosApi } from "../../api/partidosApi";
 import { juntaApi } from "../../api/juntaApi";
 import { candidatoApi } from "../../api/candidatoApi";
 import { FaUserTie } from "react-icons/fa";
+import { simulacionStore } from "../../store/simulacionStore";
+import { votoApi } from "../../api/votoApi";
 
-
-
-const RecintoSeleccionado = () => {
+const AsambleistaPage = () => {
     const location = useLocation();
     const dignidadId = location.state?.dignidadId;
     const [inputValue, setInputValue] = useState("");
@@ -25,11 +25,15 @@ const RecintoSeleccionado = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedJuntaId, setSelectedJuntaId] = useState(null);
     const [junta, setJunta] = useState([]);
+    const [votos, setVotos] = useState([]);
     const [candidatoData, setCandidato] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedPartido, setSelectedPartido] = useState(null);
     const [candidatoPartido, setCandidatoPartido] = useState([]);
-    
+    const simulacion = simulacionStore((state) => state.simulacion);
+    const [votosInputs, setVotosInputs] = useState({}); // Nuevo estado para manejar múltiples inputs
+    const [isLoadingVotos, setIsLoadingVotos] = useState(false); // Nuevo estado para el loader de votos
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -39,7 +43,7 @@ const RecintoSeleccionado = () => {
                     juntaApi.get(`/menu?idRecinto=${recinto.recintoId}`),
                     candidatoApi.get(`/menu?idDignidad=${dignidadId}`),
                 ]);
-                
+
                 setCandidato(candidatosResponse.data);
                 setPartidos(partidosResponse.data);
                 const todasLasJuntas = juntasResponse.data;
@@ -47,7 +51,7 @@ const RecintoSeleccionado = () => {
                 // Filtrar juntas por género
                 const juntasFiltradas = todasLasJuntas.filter(j => j.genero === selectedGender);
                 setFilteredJuntas(juntasFiltradas);
-
+                fetchVotos(candidatosResponse.data, juntasFiltradas);
             } catch (error) {
                 console.error("Error cargando datos:", error);
             } finally {
@@ -59,6 +63,47 @@ const RecintoSeleccionado = () => {
             fetchData();
         }
     }, [recinto.recintoId, selectedGender]); // Agregar selectedGender como dependencia
+
+    const fetchVotos = async (candidatosData, juntasFiltradas) => {
+        if (!candidatosData || candidatosData.length === 0) return;
+
+        setIsLoadingVotos(true); // Activar loader
+        const candidatosIds = candidatosData
+            .flatMap((partido) => partido.candidatos)
+            .map((c) => c.idCandidato)
+            .filter((id) => id);
+
+        if (!candidatosIds) {
+            console.error("No hay candidatos válidos");
+            setIsLoadingVotos(false); // Desactivar loader
+            return;
+        }
+
+        const juntasIds = juntasFiltradas
+            .map((j) => j.idJunta)
+            .filter((id) => id);
+
+        if (!juntasIds) {
+            console.error("No hay juntas válidas");
+            setIsLoadingVotos(false); // Desactivar loader
+            return;
+        }
+
+        const url = `/votosCandidatoJunta`;
+
+        try {
+            const response = await candidatoApi.post(url,
+                {candidatos: candidatosIds, juntas: juntasIds, idSimulacion: simulacion.idSimulacion}
+            );
+            setVotos(response.data);
+            console.log("Votos de los candidatos:", response.data);
+        } catch (error) {
+            console.error("Error obteniendo votos:", error);
+            setVotos([]);
+        } finally {
+            setIsLoadingVotos(false); // Desactivar loader
+        }
+    };
 
     const handleJuntaClick = (juntaId) => {
         setSelectedJuntaId(juntaId);
@@ -93,15 +138,114 @@ const RecintoSeleccionado = () => {
     };
 
     const handlePartidoClick = async (partido) => {
+        if (isLoadingVotos) return; // Evitar abrir el modal si los votos aún están cargando
+        
         setSelectedPartido(partido);
         setIsModalOpen(true);
-        const candidatosPartido = await candidatoData.find((data) => data.idPartido === partido.idPartido) ?? {candidatos: []};
+        const candidatosPartido = await candidatoData.find((data) => data.idPartido === partido.idPartido) ?? { candidatos: [] };
         setCandidatoPartido(candidatosPartido.candidatos);
+        
+        // Inicializar los inputs de votos para cada candidato
+        const initialVotosInputs = {};
+        const candidatosFiltrados = candidatosPartido.candidatos.filter(
+            candidato => !candidato.idProvincia || candidato.idProvincia === recinto.idProvincia
+        );
+
+        candidatosFiltrados.forEach(candidato => {
+            const votosActuales = obtenerVotosCandidato(selectedJuntaId, candidato.idCandidato);
+            initialVotosInputs[candidato.idCandidato] = votosActuales || '';
+        });
+
+        console.log('Votos iniciales:', initialVotosInputs); // Para debugging
+        setVotosInputs(initialVotosInputs);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedPartido(null);
+    };
+
+    const obtenerVotosCandidato = (juntaId, candidatoId) => {
+        const junta = votos.find((j) => j.idJunta === juntaId);
+        if (!junta) return '';  // Retornar string vacío en lugar de 0
+    
+        const candidato = junta.candidatos.find(
+            (c) => parseInt(c.idCandidato) === parseInt(candidatoId)  // Asegurar comparación numérica
+        );
+        return candidato ? candidato.numVotos.toString() : '';  // Convertir a string el resultado
+    };
+
+    const handleInputVotosChange = (candidatoId, value) => {
+        setVotosInputs(prev => ({
+            ...prev,
+            [candidatoId]: value
+        }));
+    };
+
+    const handleGuardarClick = () => {
+        const candidatosConVotos = Object.entries(votosInputs)
+            .filter(([_, votos]) => parseInt(votos) > 0) // Solo incluir votos mayores a 0
+            .map(([candidatoId, votos]) => ({
+                idCandidato: candidatoId,
+                cantidad: parseInt(votos)
+            }));
+
+        if (candidatosConVotos.length > 0) {
+            actualizarVotosBD(selectedJuntaId, candidatosConVotos);
+            handleCloseModal();
+        } else {
+            alert('Por favor, ingrese al menos un voto mayor a 0.');
+        }
+    };
+
+    const actualizarVotosBD = async (juntaId, candidatosConVotos) => {
+        if (!juntaId || !candidatosConVotos || candidatosConVotos.length === 0) {
+            console.error('Parámetros inválidos');
+            return;
+        }
+
+        const data = {
+            candidatos: candidatosConVotos,
+            idJunta: juntaId,
+            idSimulacion: simulacion.idSimulacion
+        };
+
+        console.log('Datos a enviar:', data);
+        
+        try {
+            const result = await votoApi.post('/upsertVoto', data);
+            if (result.status === 201) {
+                console.log('Votos actualizados correctamente');
+                actualizarVotosLocal(juntaId, candidatosConVotos);
+            } else {
+                console.error('Error actualizando votos:', result.statusText);
+            }
+        } catch (error) {
+            console.error('Error en la petición:', error);
+        }
+    };
+
+    const actualizarVotosLocal = (juntaId, candidatosConVotos) => {
+        setVotos(prevVotos => {
+            const nuevosVotos = prevVotos.map(junta => {
+                if (junta.idJunta === juntaId) {
+                    return {
+                        ...junta,
+                        candidatos: junta.candidatos.map(candidato => {
+                            const candidatoActualizado = candidatosConVotos.find(
+                                c => c.idCandidato === candidato.idCandidato
+                            );
+                            if (candidatoActualizado) {
+                                return { ...candidato, numVotos: candidatoActualizado.cantidad };
+                            }
+                            return candidato;
+                        })
+                    };
+                }
+                return junta;
+            });
+            return nuevosVotos;
+        });
     };
 
     return (
@@ -179,9 +323,8 @@ const RecintoSeleccionado = () => {
                             filtrarJuntas().map((junta) => (
                                 <div
                                     key={junta.idJunta}
-                                    className={`p-3 text-black items-center justify-center border-b border-black cursor-pointer hover:bg-sky-700 ${
-                                        selectedJuntaId === junta.idJunta ? 'bg-sky-700 text-white' : ''
-                                    }`}
+                                    className={`p-3 text-black items-center justify-center border-b border-black cursor-pointer hover:bg-sky-700 ${selectedJuntaId === junta.idJunta ? 'bg-sky-700 text-white' : ''
+                                        }`}
                                     onClick={() => handleJuntaClick(junta.idJunta)}
                                 >
                                     <p className="text-center font-bold text-xs">{junta.numJunta}</p>
@@ -196,13 +339,14 @@ const RecintoSeleccionado = () => {
 
                     {/* Partidos content */}
                     <div className="w-[90%] p-3 overflow-auto">
-                        {isLoading && (
+                        {(isLoading || isLoadingVotos) && (
                             <div className="h-full flex items-center justify-center">
-                                <p className="text-center">Cargando partidos...</p>
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                                <p className="ml-2">Cargando datos...</p>
                             </div>
                         )}
 
-                        {!isLoading && !showCards && (
+                        {!isLoading && !isLoadingVotos && !showCards && (
                             <div className="h-full flex items-center justify-center">
                                 <p className="text-center text-lg text-red-500">
                                     Por favor, seleccione una junta para ver los partidos
@@ -210,17 +354,17 @@ const RecintoSeleccionado = () => {
                             </div>
                         )}
 
-                        {!isLoading && showCards && partidosData && partidosData.length > 0 ? (
+                        {!isLoading && !isLoadingVotos && showCards && partidosData && partidosData.length > 0 ? (
                             <div className="mx-auto w-full h-full grid grid-cols-1 md:grid-cols-3 gap-4 p-1 mb-3"
                                 style={{ maxHeight: '350px' }}>
                                 {partidosData.map(partido => (
-                                    <div 
+                                    <div
                                         key={partido.idPartido}
                                         className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer"
                                         onClick={() => handlePartidoClick(partido)}
                                     >
-                                        <img 
-                                            src={partido.fotoPartido} 
+                                        <img
+                                            src={partido.fotoPartido}
                                             alt={partido.nombrePartido}
                                             className="w-25 h-40 object-contain mx-auto"
                                         />
@@ -230,7 +374,7 @@ const RecintoSeleccionado = () => {
                                 ))}
                             </div>
                         ) : (
-                            showCards && !isLoading && (
+                            showCards && !isLoading && !isLoadingVotos && (
                                 <p className="text-center text-lg text-red-500">
                                     No se encontraron partidos para mostrar
                                 </p>
@@ -248,39 +392,79 @@ const RecintoSeleccionado = () => {
                             <h2 className="text-xl font-bold">
                                 {selectedPartido.nombrePartido} - Lista {selectedPartido.numPartido}
                             </h2>
-                            <button 
+                            <button
                                 onClick={handleCloseModal}
                                 className="text-gray-500 hover:text-gray-700"
                             >
                                 ✕
                             </button>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {candidatoPartido.length > 0 ? (
-                                candidatoPartido.map(candidato => (
-                                    <div 
-                                        key={candidato.idCandidato}
-                                        className="bg-gray-100 p-4 rounded-lg"
-                                    >
-                                        {candidato.fotoCandidato ? (
-                                            <img 
-                                                src={candidato.fotoCandidato}
-                                                alt={candidato.nombreCandidato}
-                                                className="w-32 h-32 object-cover mx-auto rounded-full"
-                                            />
-                                        ) : (
-                                            <FaUserTie className="w-32 h-32 mx-auto text-gray-400" />
-                                        )}
-                                        <p className="text-center font-bold mt-2">{candidato.nombreCandidato}</p>
-                                        <p className="text-center text-sm text-gray-600">{candidato.posicion}</p>
-                                    </div>
-                                ))
+                            {candidatoPartido
+                                    .filter(candidato => {
+                                        // Si el candidato no tiene idProvincia, mostrarlo
+                                        if (!candidato.idProvincia) return true;
+                                        // Si tiene idProvincia, comparar con la provincia del recinto
+                                        return candidato.idProvincia === recinto.idProvincia;
+                                    }).length > 0 ? (
+                                candidatoPartido
+                                    .filter(candidato => {
+                                        // Si el candidato no tiene idProvincia, mostrarlo
+                                        if (!candidato.idProvincia) return true;
+                                        // Si tiene idProvincia, comparar con la provincia del recinto
+                                        return candidato.idProvincia === recinto.idProvincia;
+                                    })
+                                    .map(candidato => (
+                                        <div
+                                            key={candidato.idCandidato}
+                                            className="bg-gray-100 p-4 rounded-lg"
+                                        >
+                                            {candidato.fotoCandidato ? (
+                                                <img
+                                                    src={candidato.fotoCandidato}
+                                                    alt={candidato.nombreCandidato}
+                                                    className="w-32 h-32 object-cover mx-auto rounded-full"
+                                                />
+                                            ) : (
+                                                <FaUserTie className="w-32 h-32 mx-auto text-gray-400" />
+                                            )}
+                                            <p className="text-center font-bold mt-2">{candidato.nombreCandidato}</p>
+                                            <p className="text-center text-sm text-gray-600">{candidato.posicion}</p>
+                                            <div className="mt-2">
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Votos para {candidato.nombreCandidato}:
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={votosInputs[candidato.idCandidato] || ''}
+                                                    onChange={(e) => handleInputVotosChange(candidato.idCandidato, e.target.value)}
+                                                    className="mt-1 w-full p-2 border border-gray-300 rounded"
+                                                    min="0"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))
                             ) : (
                                 <p className="col-span-3 text-center text-gray-500">
                                     No hay candidatos disponibles para este partido
                                 </p>
                             )}
+                        </div>
+
+                        <div className="flex justify-end gap-2 mt-4">
+                            <button
+                                onClick={handleCloseModal}
+                                className="bg-gray-500 text-white px-4 py-2 rounded"
+                            >
+                                Cerrar
+                            </button>
+                            <button
+                                onClick={handleGuardarClick}
+                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                            >
+                                Guardar todos los votos
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -289,4 +473,4 @@ const RecintoSeleccionado = () => {
     );
 };
 
-export default RecintoSeleccionado;
+export default AsambleistaPage;

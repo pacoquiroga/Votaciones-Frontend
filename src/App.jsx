@@ -3,8 +3,7 @@ import Layout from "./components/layout/Layout";
 import PaginaPrincipal from "./pages/PaginaPrincipal";
 import Simulacion from "./pages/Simulacion";
 import PresidentePage from "./components/recinto/PresidentePage";
-import AsambleistaNaPage from "./components/recinto/AsambleistaNaPage";
-import AsambleistaProvPage from "./components/recinto/AsambleistaProvPage";
+import AsambleistasPage from "./components/recinto/AsambleistasPage";
 import DignidadPage from "./components/recinto/DignidadPage";
 import { useStore } from "./store/store";
 import { simulacionStore } from "./store/simulacionStore";
@@ -41,8 +40,11 @@ function App() {
         : 
             <Routes>
               <Route path="/recinto-seleccionado" element={<PresidentePage />} />
-              <Route path="/asambleista-nacional" element={<AsambleistaNaPage />} />
-              <Route path="/asambleista-provincial" element={<AsambleistaProvPage />} />
+              <Route path="/asambleista-nacional" element={<AsambleistasPage />} />
+              <Route path="/asambleista-provincial" element={<AsambleistasPage />} />
+              <Route path="/parlamento-andino" element={<AsambleistasPage />} />
+              <Route path="/asambleista-circunscripcion" element={<AsambleistasPage />} />
+              
               <Route path="/" element={<DignidadPage />} />
             </Routes>
       }
