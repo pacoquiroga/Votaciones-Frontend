@@ -7,9 +7,12 @@ import { useNavigate } from "react-router-dom";
 import { useStore } from "../../store/store";
 import { partidosApi } from "../../api/partidosApi";
 import { juntaApi } from "../../api/juntaApi";
+import { candidatoApi } from "../../api/candidatoApi";
+import { FaUserTie } from "react-icons/fa";
 
 const AsambleistaNaPage = () => {
     const location = useLocation();
+    const dignidadId = location.state?.dignidadId;
     const [inputValue, setInputValue] = useState("");
     const navigate = useNavigate();
     const recinto = useStore((state) => state.recinto);
@@ -19,21 +22,30 @@ const AsambleistaNaPage = () => {
     const [showCards, setShowCards] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedJuntaId, setSelectedJuntaId] = useState(null);
-    const [junta, setJunta] = useState([]); // Nueva declaración de estado
-
+    const [junta, setJunta] = useState([]);
+    const [candidatoData, setCandidato] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedPartido, setSelectedPartido] = useState(null);
+    const [candidatoPartido, setCandidatoPartido] = useState([]);
+    
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const [partidosResponse, juntasResponse] = await Promise.all([
+                const [partidosResponse, juntasResponse, candidatosResponse] = await Promise.all([
                     partidosApi.get("/"),
-                    juntaApi.get(`/menu?idRecinto=${recinto.recintoId}`)
+                    juntaApi.get(`/menu?idRecinto=${recinto.recintoId}`),
+                    candidatoApi.get(`/menu?idDignidad=${dignidadId}`),
                 ]);
-
+                
+                setCandidato(candidatosResponse.data);
                 setPartidos(partidosResponse.data);
-                setJunta(juntasResponse.data); // Guardar todas las juntas
-                const juntasFiltradas = juntasResponse.data.filter(junta => junta.genero === selectedGender);
+                const todasLasJuntas = juntasResponse.data;
+                setJunta(todasLasJuntas);
+                // Filtrar juntas por género
+                const juntasFiltradas = todasLasJuntas.filter(j => j.genero === selectedGender);
                 setFilteredJuntas(juntasFiltradas);
+
             } catch (error) {
                 console.error("Error cargando datos:", error);
             } finally {
@@ -44,7 +56,7 @@ const AsambleistaNaPage = () => {
         if (recinto.recintoId) {
             fetchData();
         }
-    }, [recinto.recintoId]); // Remover selectedGender de las dependencias
+    }, [recinto.recintoId, selectedGender]); // Agregar selectedGender como dependencia
 
     const handleJuntaClick = (juntaId) => {
         setSelectedJuntaId(juntaId);
@@ -69,12 +81,25 @@ const AsambleistaNaPage = () => {
     };
 
     const handleGenderChange = (e) => {
-        setSelectedGender(e.target.value);
-        // Filtrar juntas por el nuevo género sin recargar
-        const juntasFiltradas = junta.filter(j => j.genero === e.target.value);
+        const newGender = e.target.value;
+        setSelectedGender(newGender);
+        // Filtrar juntas existentes por el nuevo género
+        const juntasFiltradas = junta.filter(j => j.genero === newGender);
         setFilteredJuntas(juntasFiltradas);
         setSelectedJuntaId(null);
         setShowCards(false);
+    };
+
+    const handlePartidoClick = async (partido) => {
+        setSelectedPartido(partido);
+        setIsModalOpen(true);
+        const candidatosPartido = await candidatoData.find((data) => data.idPartido === partido.idPartido) ?? {candidatos: []};
+        setCandidatoPartido(candidatosPartido.candidatos);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedPartido(null);
     };
 
     return (
@@ -133,8 +158,7 @@ const AsambleistaNaPage = () => {
                 </p>
             </div>
 
-            <div className={`border border-black rounded-md overflow-hidden mt-3 
-                ${showCards ? 'h-full' : ''}`}>
+            <div className="border border-black rounded-md mt-3">
                 {/* Headers */}
                 <div className="flex">
                     <div className="p-3 text-black items-center bg-[#D5D5D5] justify-center border-b border-r border-black w-[10%]">
@@ -149,17 +173,23 @@ const AsambleistaNaPage = () => {
                 <div className={`flex flex-1 ${showCards ? 'h-full' : ''}`}>
                     {/* Juntas column */}
                     <div className="w-[10%] border-r border-black">
-                        {filtrarJuntas().map((junta) => (
-                            <div
-                                key={junta.idJunta}
-                                className={`p-3 text-black items-center justify-center border-b border-black cursor-pointer hover:bg-sky-700 ${
-                                    selectedJuntaId === junta.idJunta ? 'bg-sky-700 text-white' : ''
-                                }`}
-                                onClick={() => handleJuntaClick(junta.idJunta)}
-                            >
-                                <p className="text-center font-bold text-xs">{junta.numJunta}</p>
+                        {filteredJuntas && filteredJuntas.length > 0 ? (
+                            filtrarJuntas().map((junta) => (
+                                <div
+                                    key={junta.idJunta}
+                                    className={`p-3 text-black items-center justify-center border-b border-black cursor-pointer hover:bg-sky-700 ${
+                                        selectedJuntaId === junta.idJunta ? 'bg-sky-700 text-white' : ''
+                                    }`}
+                                    onClick={() => handleJuntaClick(junta.idJunta)}
+                                >
+                                    <p className="text-center font-bold text-xs">{junta.numJunta}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-3 text-center text-gray-500">
+                                No hay juntas disponibles
                             </div>
-                        ))}
+                        )}
                     </div>
 
                     {/* Partidos content */}
@@ -184,7 +214,8 @@ const AsambleistaNaPage = () => {
                                 {partidosData.map(partido => (
                                     <div 
                                         key={partido.idPartido}
-                                        className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer transform transition-transform duration-300 hover:scale-105"
+                                        className="bg-[#e2e2e2] rounded-[15px] p-5 text-black hover:bg-[#578aff] origin-center hover:origin-top cursor-pointer"
+                                        onClick={() => handlePartidoClick(partido)}
                                     >
                                         <img 
                                             src={partido.fotoPartido} 
@@ -206,6 +237,52 @@ const AsambleistaNaPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal para mostrar candidatos */}
+            {isModalOpen && selectedPartido && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white w-[80%] max-h-[80vh] p-5 rounded-lg overflow-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">
+                                {selectedPartido.nombrePartido} - Lista {selectedPartido.numPartido}
+                            </h2>
+                            <button 
+                                onClick={handleCloseModal}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {candidatoPartido.length > 0 ? (
+                                candidatoPartido.map(candidato => (
+                                    <div 
+                                        key={candidato.idCandidato}
+                                        className="bg-gray-100 p-4 rounded-lg"
+                                    >
+                                        {candidato.fotoCandidato ? (
+                                            <img 
+                                                src={candidato.fotoCandidato}
+                                                alt={candidato.nombreCandidato}
+                                                className="w-32 h-32 object-cover mx-auto rounded-full"
+                                            />
+                                        ) : (
+                                            <FaUserTie className="w-32 h-32 mx-auto text-gray-400" />
+                                        )}
+                                        <p className="text-center font-bold mt-2">{candidato.nombreCandidato}</p>
+                                        <p className="text-center text-sm text-gray-600">{candidato.posicion}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="col-span-3 text-center text-gray-500">
+                                    No hay candidatos disponibles para este partido
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

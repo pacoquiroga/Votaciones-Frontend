@@ -14,7 +14,7 @@ import { votoApi } from "../../api/votoApi";
 const PresidentePage = () => {
   const location = useLocation();
   const simulacion = simulacionStore((state) => state.simulacion);
-  const candidatoId = location.state?.candidatoId;
+  const dignidadId = location.state?.dignidadId;
   const [inputValue, setInputValue] = useState("");
   const navigate = useNavigate();
   const recinto = useStore((state) => state.recinto);
@@ -106,7 +106,7 @@ const PresidentePage = () => {
         setIsLoading(true);
         // Realizar ambas solicitudes al mismo tiempo
         const [candidatosResponse, juntasResponse] = await Promise.all([
-          candidatoApi.get(`/menu?idDignidad=${candidatoId}`),
+          candidatoApi.get(`/menu?idDignidad=${dignidadId}`),
           juntaApi.get(`/menu?idRecinto=${recinto.recintoId}`),
         ]);
 
@@ -132,10 +132,10 @@ const PresidentePage = () => {
       }
     };
 
-    if (candidatoId && recinto.recintoId) {
+    if (dignidadId && recinto.recintoId) {
       fetchData();
     }
-  }, [candidatoId, recinto.recintoId, selectedGender]);
+  }, [dignidadId, recinto.recintoId, selectedGender]);
 
   const fetchVotos = async (candidatosData, juntasFiltradas) => {
     if (!candidatosData || candidatosData.length === 0) return;
@@ -321,11 +321,11 @@ const PresidentePage = () => {
         </div>
 
         <div className={`flex flex-1 ${showCards ? "h-full" : ""}`}>
-          <div className="w-[10%]">
+          <div className="w-[10%] border-r border-black">
             {filtrarJuntas().map((junta) => (
               <div
                 key={junta.idJunta}
-                className={`p-3 text-black items-center justify-center border-b border-r border-black cursor-pointer hover:bg-sky-700 ${
+                className={`p-3 text-black items-center justify-center border-b border-black cursor-pointer hover:bg-sky-700 ${
                   selectedJuntaId === junta.idJunta
                     ? "bg-sky-700 text-white"
                     : ""
