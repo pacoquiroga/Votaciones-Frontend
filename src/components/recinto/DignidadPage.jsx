@@ -44,7 +44,7 @@ const DignidadPage = () => {
                 navigate("/asambleista-nacional",  { state: { dignidadId } });
                 break;
             case 3:
-                navigate("/asambleista-provincial");
+                navigate("/asambleista-provincial",  { state: { dignidadId } });
                 break;
             default:
                 console.log("Dignidad no encontrada");

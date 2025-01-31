@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FaFilter } from "react-icons/fa";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { useLocation } from "react-router-dom";
 import './PresidentePage.css';
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../../store/store";
@@ -7,6 +9,7 @@ import { partidosApi } from "../../api/partidosApi";
 import { juntaApi } from "../../api/juntaApi";
 import { candidatoApi } from "../../api/candidatoApi";
 import { FaUserTie } from "react-icons/fa";
+
 
 
 const RecintoSeleccionado = () => {
