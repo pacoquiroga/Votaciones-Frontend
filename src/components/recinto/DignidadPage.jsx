@@ -17,7 +17,7 @@ const DignidadPage = () => {
 
             const filteredDignidades = response.data.filter(d => {
                 if (d.nombreDignidad.toLowerCase().includes('asambleistas provinciales')) {
-                    return !provinciasExcluidas.includes(recinto.provincia?.toUpperCase());
+                    return provinciasExcluidas.includes(recinto.provincia?.toUpperCase());
                 }
                 return true;
             });
