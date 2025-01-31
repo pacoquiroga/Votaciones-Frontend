@@ -73,27 +73,22 @@ const AsambleistaPage = () => {
             .map((c) => c.idCandidato)
             .filter((id) => id);
 
-        if (!candidatosIds) {
-            console.error("No hay candidatos válidos");
-            setIsLoadingVotos(false); // Desactivar loader
-            return;
-        }
-
         const juntasIds = juntasFiltradas
             .map((j) => j.idJunta)
             .filter((id) => id);
 
-        if (!juntasIds) {
-            console.error("No hay juntas válidas");
-            setIsLoadingVotos(false); // Desactivar loader
+        if (!candidatosIds.length || !juntasIds.length) {
+            console.error("No hay candidatos o juntas válidas");
+            setIsLoadingVotos(false);
             return;
         }
+
 
         const url = `/votosCandidatoJunta`;
 
         try {
             const response = await candidatoApi.post(url,
-                {candidatos: candidatosIds, juntas: juntasIds, idSimulacion: simulacion.idSimulacion}
+                { candidatos: candidatosIds, juntas: juntasIds, idSimulacion: simulacion.idSimulacion }
             );
             setVotos(response.data);
             console.log("Votos de los candidatos:", response.data);
@@ -139,21 +134,29 @@ const AsambleistaPage = () => {
 
     const handlePartidoClick = async (partido) => {
         if (isLoadingVotos) return; // Evitar abrir el modal si los votos aún están cargando
-        
+
         setSelectedPartido(partido);
         setIsModalOpen(true);
         const candidatosPartido = await candidatoData.find((data) => data.idPartido === partido.idPartido) ?? { candidatos: [] };
         setCandidatoPartido(candidatosPartido.candidatos);
-        
+
         // Inicializar los inputs de votos para cada candidato
         const initialVotosInputs = {};
-        const candidatosFiltrados = candidatosPartido.candidatos.filter(
-            candidato => !candidato.idProvincia || candidato.idProvincia === recinto.idProvincia
-        );
+        const candidatosFiltrados = candidatoData.find((data) => data.idPartido === partido.idPartido)?.candidatos.filter(
+            c => !c.idProvincia || c.idProvincia === recinto.idProvincia
+        ) || [];
 
+        // Primero obtenemos los votos actuales de la junta seleccionada
+        const juntaActual = votos.find(j => j.idJunta === selectedJuntaId);
+        
         candidatosFiltrados.forEach(candidato => {
-            const votosActuales = obtenerVotosCandidato(selectedJuntaId, candidato.idCandidato);
-            initialVotosInputs[candidato.idCandidato] = votosActuales || '';
+            // Buscar los votos en la junta actual
+            const votosCandidato = juntaActual?.candidatos?.find(
+                c => c.idCandidato === candidato.idCandidato
+            )?.numVotos;
+            
+            // Asegurarse de que se guarde como string y nunca como undefined o null
+            initialVotosInputs[candidato.idCandidato] = votosCandidato?.toString() || '0';
         });
 
         console.log('Votos iniciales:', initialVotosInputs); // Para debugging
@@ -167,20 +170,24 @@ const AsambleistaPage = () => {
 
     const obtenerVotosCandidato = (juntaId, candidatoId) => {
         const junta = votos.find((j) => j.idJunta === juntaId);
-        if (!junta) return '';  // Retornar string vacío en lugar de 0
+        if (!junta) return '0';
     
         const candidato = junta.candidatos.find(
-            (c) => parseInt(c.idCandidato) === parseInt(candidatoId)  // Asegurar comparación numérica
+            (c) => c.idCandidato === candidatoId
         );
-        return candidato ? candidato.numVotos.toString() : '';  // Convertir a string el resultado
+        // Asegurarse de que cualquier valor numérico (incluso 0) se convierta a string
+        return candidato?.numVotos?.toString() || '0';
     };
 
     const handleInputVotosChange = (candidatoId, value) => {
-        setVotosInputs(prev => ({
-            ...prev,
-            [candidatoId]: value
-        }));
+        if (/^\d*$/.test(value)) { // Solo números
+            setVotosInputs(prev => ({
+                ...prev,
+                [candidatoId]: value
+            }));
+        }
     };
+
 
     const handleGuardarClick = () => {
         const candidatosConVotos = Object.entries(votosInputs)
@@ -194,7 +201,7 @@ const AsambleistaPage = () => {
             actualizarVotosBD(selectedJuntaId, candidatosConVotos);
             handleCloseModal();
         } else {
-            alert('Por favor, ingrese al menos un voto mayor a 0.');
+            toast('Por favor, ingrese al menos un voto mayor a 0.');
         }
     };
 
@@ -211,7 +218,7 @@ const AsambleistaPage = () => {
         };
 
         console.log('Datos a enviar:', data);
-        
+
         try {
             const result = await votoApi.post('/upsertVoto', data);
             if (result.status === 201) {
@@ -227,26 +234,27 @@ const AsambleistaPage = () => {
 
     const actualizarVotosLocal = (juntaId, candidatosConVotos) => {
         setVotos(prevVotos => {
-            const nuevosVotos = prevVotos.map(junta => {
+            return prevVotos.map(junta => {
                 if (junta.idJunta === juntaId) {
+                    const candidatosActualizados = junta.candidatos.map(candidato => {
+                        const actualizado = candidatosConVotos.find(
+                            c => c.idCandidato === candidato.idCandidato
+                        );
+                        return {
+                            ...candidato,
+                            numVotos: actualizado ? actualizado.cantidad : candidato.numVotos || 0
+                        };
+                    });
                     return {
                         ...junta,
-                        candidatos: junta.candidatos.map(candidato => {
-                            const candidatoActualizado = candidatosConVotos.find(
-                                c => c.idCandidato === candidato.idCandidato
-                            );
-                            if (candidatoActualizado) {
-                                return { ...candidato, numVotos: candidatoActualizado.cantidad };
-                            }
-                            return candidato;
-                        })
+                        candidatos: candidatosActualizados
                     };
                 }
                 return junta;
             });
-            return nuevosVotos;
         });
     };
+
 
     return (
         <div className="w-full h-full p-5 bg-white relative overflow-auto">
@@ -402,12 +410,12 @@ const AsambleistaPage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {candidatoPartido
-                                    .filter(candidato => {
-                                        // Si el candidato no tiene idProvincia, mostrarlo
-                                        if (!candidato.idProvincia) return true;
-                                        // Si tiene idProvincia, comparar con la provincia del recinto
-                                        return candidato.idProvincia === recinto.idProvincia;
-                                    }).length > 0 ? (
+                                .filter(candidato => {
+                                    // Si el candidato no tiene idProvincia, mostrarlo
+                                    if (!candidato.idProvincia) return true;
+                                    // Si tiene idProvincia, comparar con la provincia del recinto
+                                    return candidato.idProvincia === recinto.idProvincia;
+                                }).length > 0 ? (
                                 candidatoPartido
                                     .filter(candidato => {
                                         // Si el candidato no tiene idProvincia, mostrarlo
@@ -452,20 +460,25 @@ const AsambleistaPage = () => {
                             )}
                         </div>
 
-                        <div className="flex justify-end gap-2 mt-4">
-                            <button
-                                onClick={handleCloseModal}
-                                className="bg-gray-500 text-white px-4 py-2 rounded"
-                            >
-                                Cerrar
-                            </button>
-                            <button
-                                onClick={handleGuardarClick}
-                                className="bg-blue-500 text-white px-4 py-2 rounded"
-                            >
-                                Guardar todos los votos
-                            </button>
-                        </div>
+                        {/* Solo mostrar los botones si hay candidatos disponibles */}
+                        {candidatoPartido.filter(candidato => 
+                            !candidato.idProvincia || candidato.idProvincia === recinto.idProvincia
+                        ).length > 0 && (
+                            <div className="flex justify-end gap-2 mt-4">
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="bg-gray-500 text-white px-4 py-2 rounded"
+                                >
+                                    Cerrar
+                                </button>
+                                <button
+                                    onClick={handleGuardarClick}
+                                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                                >
+                                    Guardar todos los votos
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

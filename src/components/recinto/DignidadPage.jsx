@@ -16,8 +16,8 @@ const DignidadPage = () => {
             const response = await dignidadesApi.get("/");
 
             const filteredDignidades = response.data.filter(d => {
-                if (d.nombreDignidad.toLowerCase().includes('asambleistas provinciales por circunscripcion')) {
-                    return provinciasExcluidas.includes(recinto.provincia?.toUpperCase());
+                if (d.nombreDignidad.toLowerCase().includes('asambleistas provinciales')) {
+                    return !provinciasExcluidas.includes(recinto.provincia?.toUpperCase());
                 }
                 return true;
             });
