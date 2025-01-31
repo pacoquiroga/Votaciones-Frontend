@@ -35,13 +35,13 @@ const DignidadPage = () => {
 
     // Función para redireccionar a la página de la dignidad seleccionada y 
 
-    const handleDignidadClick = (id, candidatoId) => {
+    const handleDignidadClick = (id, dignidadId) => {
         switch(id) {
             case 1:
-                navigate("/recinto-seleccionado", { state: { candidatoId } });
+                navigate("/recinto-seleccionado", { state: { dignidadId } });
                 break;
             case 2: 
-                navigate("/asambleista-nacional",  { state: { candidatoId } });
+                navigate("/asambleista-nacional",  { state: { dignidadId } });
                 break;
             case 3:
                 navigate("/asambleista-provincial");
