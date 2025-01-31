@@ -16,11 +16,25 @@ const DignidadPage = () => {
             const response = await dignidadesApi.get("/");
 
             const filteredDignidades = response.data.filter(d => {
-                if (d.nombreDignidad.toLowerCase().includes('asambleistas provinciales')) {
-                    return !provinciasExcluidas.includes(recinto.provincia?.toUpperCase());
+                const nombreDignidad = d.nombreDignidad.toLowerCase();
+                const provinciaActual = recinto.provincia?.toUpperCase();
+                const esProvinciaExcluida = provinciasExcluidas.includes(provinciaActual);
+
+                if (nombreDignidad.includes('asambleistas nacionales')) {
+                    return !esProvinciaExcluida; // Solo mostrar para provincias no excluidas
                 }
-                return true;
+                
+                if (nombreDignidad.includes('asambleistas provinciales por circunscripcion')) {
+                    return esProvinciaExcluida; // Solo mostrar para provincias excluidas
+                }
+                
+                if (nombreDignidad.includes('asambleistas provinciales')) {
+                    return !esProvinciaExcluida; // Solo mostrar para provincias no excluidas
+                }
+
+                return true; // Mostrar el resto de dignidades sin filtrar
             });
+            
             console.log(response.data);
             setDignidad(filteredDignidades);
         } catch (error) {
