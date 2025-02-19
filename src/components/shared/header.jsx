@@ -1,8 +1,10 @@
 import { TiThMenu } from "react-icons/ti";
 import { simulacionStore } from "../../store/simulacionStore";
+import { usuarioStore } from "../../store/usuarioStore";
 
 export default function Header({ menu, setMenu }) {
     const simulacion = simulacionStore((state) => state.simulacion);
+    const usuario = usuarioStore((state) => state.usuario);
 
     const handleClick = () => {
         setMenu(!menu);
@@ -21,9 +23,10 @@ export default function Header({ menu, setMenu }) {
             <img className="md:ml-20 mx-auto max-h-full md:mt-2" src="/images/logo-elecciones2025.png" alt="Logo elecciones" />
             
             {/* Mostrar el nombre de la simulación */}
-            {simulacion.nombreSimulacion && (
+            {(simulacion.nombreSimulacion && usuario.idUsuario !== 0) && (
                 <p>Simulación: <span className="text-black text-lg font-bold md:mr-20">{simulacion.nombreSimulacion}</span></p>
             )}
+            
         </header>
     );
 }
