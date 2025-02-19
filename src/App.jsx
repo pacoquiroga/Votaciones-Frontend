@@ -7,9 +7,11 @@ import AsambleistasPage from "./components/recinto/AsambleistasPage";
 import DignidadPage from "./components/recinto/DignidadPage";
 import { useStore } from "./store/store";
 import { simulacionStore } from "./store/simulacionStore";
+import { usuarioStore } from "./store/usuarioStore";
 
 import { useEffect } from "react";
 import { simulacionesApi } from "./api/simulacionesApi";
+import IniciarSesion from "./pages/IniciarSesion";
 
 function App() {
 
@@ -32,9 +34,14 @@ function App() {
 
   const recinto = useStore((state) => state.recinto);
   const simulacion = simulacionStore((state) => state.simulacion);
+  const usuario = usuarioStore((state) => state.usuario);
+
+  console.log(usuario);
+
   return (
     <Layout>
       {
+        usuario.idUsuario === 0 ? <IniciarSesion/> :
         simulacion.idSimulacion === 0 ? <Simulacion/> :
         recinto.recintoId === 0 ? <PaginaPrincipal/>
         : 

@@ -1,8 +1,10 @@
 import Select from 'react-select';
 import ModalSimulacion from '../simulacion/ModalSimulacion';
+import ModalRegistrarUsuario from '../autenticacion/ModalRegistrarUsuario';
 import { FaCircleInfo } from "react-icons/fa6";
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/store';
+import { usuarioStore } from '../../store/usuarioStore';
 import { useNavigate } from 'react-router-dom';
 
 import { provinciasApi } from '../../api/provinciasApi';
@@ -12,8 +14,10 @@ import { recintosApi } from "../../api/recintosApi";
 
 export default function Menu({ menu }) {
     const navigate = useNavigate();
+    const usuario = usuarioStore((state) => state.usuario);
     // Abrir modal
     const [openModalSimulacion, setOpenModalSimulacion] = useState(false);
+    const [openModalUsuario, setOpenModalUsuario] = useState(false);
 
     // Implementar base de datos para cargar las opciones
     const [provincias, setProvincias] = useState([]);
@@ -137,6 +141,16 @@ export default function Menu({ menu }) {
         setOpenModalSimulacion(true);
     }
 
+    const handleClickCerrarSesion = () => {
+        usuarioStore.getState().resetUsuario();
+
+        navigate("/")
+    }
+
+    const handleClickRegistrarUsuario = () => {
+        setOpenModalUsuario(true);
+    }
+
     return (
         <div className={`bg-white md:flex flex-col 
         ${menu ? 'flex' : 'hidden'}`}>
@@ -187,12 +201,34 @@ export default function Menu({ menu }) {
                     Buscar
                 </button>
             </form>
-            <button
-                onClick={handleClickInfoSimulacion}
-                type='button'
-                className={`font-bold px-2.5 py-2.5 mr-auto ml-2 mb-2 bg-yellow-400 rounded-full`}>
-                <FaCircleInfo />
-            </button>
+            <div className='flex mb-2'>
+                {
+                    usuario.rol === "Administrador" &&
+                    <>
+                        <button
+                            onClick={handleClickInfoSimulacion}
+                            type='button'
+                            className={`font-bold px-2.5 py-2.5 mr-auto ml-2 bg-yellow-400 rounded-full absolute`}>
+                            <FaCircleInfo />
+                        </button>
+
+                        <button className="text-white font-bold rounded-lg px-5 py-2.5 ml-auto mr-2
+                                            bg-blue-600 hover:bg-blue-800
+                                            focus:ring-4 focus:ring-blue-300 focus:outline-none"
+                                            onClick={handleClickRegistrarUsuario}>
+                            Registrar usuario
+                        </button>
+                    </>
+                }
+                <button className={`bg-red-500 text-white font-bold rounded-lg px-5 py-2.5 mr-2
+                hover:bg-red-700 focus:ring-4 focus:ring-red-300 focus:outline-none
+                ${usuario.rol === "Registrador" ? 'ml-auto' : ''}`}
+                onClick={handleClickCerrarSesion}>
+                    Cerrar Sesión
+                </button>
+            </div>
+
+            {openModalUsuario && <ModalRegistrarUsuario openModal={openModalUsuario} setOpenModal={setOpenModalUsuario} />}
             {openModalSimulacion && <ModalSimulacion openModal={openModalSimulacion} setOpenModal={setOpenModalSimulacion} />}
         </div>
     );
