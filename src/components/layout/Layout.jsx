@@ -18,13 +18,13 @@ export default function Layout({ children: contenido }) {
             <Router>
 
             {/* Mostrar el Menu solo si ya existe una simulacion */}
-            {(simulacion.idSimulacion !== 0 && usuario.idUsuario !== 0) &&
+            {(simulacion.idSimulacion !== 0 && usuario.idUser !== 0) &&
             <Menu menu={menu}/>
             }
 
             <div className={`bg-gray-300 md:flex justify-center items-center
                 ${menu? 'hidden': 'flex'}
-                ${(simulacion.idSimulacion === 0 || usuario.idUsuario === 0) ? 'md:col-span-2': ''}`}>
+                ${(simulacion.idSimulacion === 0 || usuario.idUser === 0) ? 'md:col-span-2': ''}`}>
                 <div className="h-[90%] w-11/12 md:w-[95%] rounded-xl overflow-hidden">
                     {contenido}
                 </div>

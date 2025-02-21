@@ -1,29 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usuarioStore } from "../store/usuarioStore";
 import { TbEye } from "react-icons/tb";
 import { TbEyeClosed } from "react-icons/tb";
+
+import { userApi } from "../api/userApi";
 
 export default function IniciarSesion() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showErrors, setShowErrors] = useState(false);
     const [observarcontraseña, setObservarcontraseña] = useState(false);
 
-    const handleClick = async () => {
-        // Lógica para guardar la simulación
-        try {
-            const usuario = {
-                nombre: "Pepe",
-                apellido: "Perez",
-                email: email,
-                password: password,
-                rol: "Administrador"
-            };
+    useEffect(() => {
+        if (localStorage.getItem('user') !== null) {
+            const usuario = JSON.parse(localStorage.getItem('user'));
             usuarioStore.getState().setUsuario(usuario);
+        }
+    }, []);
+
+    const handleClick = async () => {
+        try {
+            const autenticacion = {
+                email: email,
+                password: password
+            };
+            const response = await userApi.post('/login', autenticacion);
+            if (response.data.idUser) {
+                localStorage.setItem('user', JSON.stringify(response.data));
+            }
+            usuarioStore.getState().setUsuario(response.data);
             setEmail('');
             setPassword('');
         } catch (error) {
-            console.log("Error al obtener usuario");
+            setShowErrors(true);
+            console.log(error);
         }
     }
 
@@ -65,6 +76,8 @@ export default function IniciarSesion() {
                     </button>
                 </div>
             </div>
+
+            {showErrors && <p className="text-red-500 text-xl font-bold">Usuario o contraseña incorrectos</p>}
 
             <button
                 onClick={handleClick}
