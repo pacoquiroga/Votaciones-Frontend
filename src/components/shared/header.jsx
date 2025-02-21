@@ -23,7 +23,7 @@ export default function Header({ menu, setMenu }) {
             <img className="md:ml-20 mx-auto max-h-full md:mt-2" src="/images/logo-elecciones2025.png" alt="Logo elecciones" />
             
             {/* Mostrar el nombre de la simulación */}
-            {(simulacion.nombreSimulacion && usuario.idUsuario !== 0) && (
+            {(simulacion.nombreSimulacion && usuario.idUser !== 0) && (
                 <p>Simulación: <span className="text-black text-lg font-bold md:mr-20">{simulacion.nombreSimulacion}</span></p>
             )}
             

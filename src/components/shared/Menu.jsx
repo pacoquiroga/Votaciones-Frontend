@@ -143,6 +143,7 @@ export default function Menu({ menu }) {
 
     const handleClickCerrarSesion = () => {
         usuarioStore.getState().resetUsuario();
+        localStorage.removeItem('user');
 
         navigate("/")
     }

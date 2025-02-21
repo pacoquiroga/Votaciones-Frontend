@@ -2,6 +2,7 @@ import { simulacionStore } from "../store/simulacionStore";
 import { usuarioStore } from "../store/usuarioStore";
 import { useState, useEffect } from "react";
 import { simulacionesApi } from "../api/simulacionesApi";
+import { useNavigate } from 'react-router-dom';
 
 export default function Simulacion() {
     const usuario = usuarioStore((state) => state.usuario);
@@ -9,6 +10,7 @@ export default function Simulacion() {
     const [simulaciones, setSimulaciones] = useState([]);
     const [selectedSimulacion, setSelectedSimulacion] = useState("");
     const [activeTab, setActiveTab] = useState("crear");
+    const navigate = useNavigate();
 
     useEffect(() => {
         getSimulaciones();
@@ -49,6 +51,12 @@ export default function Simulacion() {
             }
             setNombre("");
         }
+    };
+
+    const handleClickCerrarSesion = () => {
+        usuarioStore.getState().resetUsuario();
+        localStorage.removeItem('user');
+        navigate("/");
     };
 
     if (usuario.rol === "Administrador")
@@ -106,6 +114,11 @@ export default function Simulacion() {
                         </button>
                     </div>
                 )}
+                <button
+                    onClick={handleClickCerrarSesion}
+                    className="bg-red-500 text-white font-bold rounded-lg px-5 py-2.5 hover:bg-red-700 focus:ring-4 focus:ring-red-300 focus:outline-none">
+                    Cerrar Sesión
+                </button>
             </div>
         );
 
@@ -115,6 +128,11 @@ export default function Simulacion() {
                 <h2 className="text-black text-4xl md:text-6xl font-bold text-center">
                     No hay simulaciones activas en este momento.
                 </h2>
+                <button
+                    onClick={handleClickCerrarSesion}
+                    className="bg-red-500 text-white font-bold rounded-lg px-5 py-2.5 hover:bg-red-700 focus:ring-4 focus:ring-red-300 focus:outline-none mt-8">
+                    Cerrar Sesión
+                </button>
             </div>
         );
 

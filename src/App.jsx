@@ -41,7 +41,7 @@ function App() {
   return (
     <Layout>
       {
-        usuario.idUsuario === 0 ? <IniciarSesion/> :
+        usuario.idUser === 0 ? <IniciarSesion/> :
         simulacion.idSimulacion === 0 ? <Simulacion/> :
         recinto.recintoId === 0 ? <PaginaPrincipal/>
         : 

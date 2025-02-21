@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
+import { userApi } from "../../api/userApi";
 
 export default function ModalRegistrarUsuario({ openModal, setOpenModal }) {
     const dialogRef = useRef(null);
@@ -25,14 +26,33 @@ export default function ModalRegistrarUsuario({ openModal, setOpenModal }) {
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.nombre || !formData.apellido || !formData.email || !formData.password || !formData.rol) {
             Swal.fire("Error", "Todos los campos son obligatorios", "error");
             return;
         }
-        Swal.fire("Éxito", "Usuario registrado correctamente", "success");
-        setOpenModal(false);
+        if (!validateEmail(formData.email)) {
+            Swal.fire("Error", "Correo electrónico no válido", "error");
+            return;
+        }
+        if (formData.password.length < 6) {
+            Swal.fire("Error", "La contraseña debe tener al menos 6 caracteres", "error");
+            return;
+        }
+
+        try {
+            const response = await userApi.post('/registro', formData);
+            Swal.fire("Éxito", "Usuario registrado correctamente", "success");
+            setOpenModal(false);
+        } catch (error) {
+            Swal.fire("Error", "Hubo un problema al registrar el usuario", "error");
+        }
     };
 
     return (
@@ -85,8 +105,8 @@ export default function ModalRegistrarUsuario({ openModal, setOpenModal }) {
                     className="border rounded-lg p-2 w-full"
                 >
                     <option value="">Seleccione un rol</option>
-                    <option value="administrador">Administrador</option>
-                    <option value="registrador">Registrador</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Registrador">Registrador</option>
                 </select>
                 <button
                     type="submit"
